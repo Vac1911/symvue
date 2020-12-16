@@ -1,0 +1,25 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Index{% endblock %}
+{% block content %}
+  <h1>Index</h1>
+  {% if articles|length > 0 %}
+    <div class="row">
+      {% for article in articles %}
+        <div class="col-lg-4 col-md-6 col border">
+          <div>
+            <a class="h5 text-decoration-none" href="/articles/{{ article.slug }}">{{ article.title|e }}</a>
+          </div>
+          <div class="d-flex justify-content-between small">
+            <span>{{ article.createdat.format('Y-m-d') }}</span>
+          </div>
+          <div>
+            {% for tag in article.tags %}
+              <span class="badge bg-secondary">{{ tag.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}

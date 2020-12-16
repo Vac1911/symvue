@@ -1,0 +1,19 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{{ article.title|e }}{% endblock %}
+{% block content %}
+  <article>
+    <header>
+      <h1>{{ article.title|e }}</h1>
+      <img class="img-fluid" src="{{ article.coverPhotoUrl }}" />
+      <div>
+        {% for tag in article.tags %}
+          <span class="badge bg-secondary">{{ tag.name|e }}</span>
+        {% endfor %}
+      </div>
+    </header>
+    <div>
+      {{ article.body|nl2br }}
+    </div>
+  </article>
+{% endblock %}
