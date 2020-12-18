@@ -111,7 +111,8 @@ class User
      */
     private $articles;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->articles = new ArrayCollection();
     }
 
@@ -183,7 +184,8 @@ class User
      */
     public function setEmailVerifiedAt(?\DateTime $emailVerifiedAt): User
     {
-        $this->emailVerifiedAt = $emailVerifiedAt;
+        if (!isset($this->emailVerifiedAt) || $this->emailVerifiedAt->timestamp != $emailVerifiedAt->timestamp)
+            $this->emailVerifiedAt = $emailVerifiedAt;
         return $this;
     }
 
@@ -291,7 +293,8 @@ class User
      */
     public function setCreatedAt(?\DateTime $createdAt): User
     {
-        $this->createdAt = $createdAt;
+        if (!isset($this->createdAt) || $this->createdAt->timestamp != $createdAt->timestamp)
+            $this->createdAt = $createdAt;
         return $this;
     }
 
@@ -309,7 +312,8 @@ class User
      */
     public function setUpdatedAt(?\DateTime $updatedAt): User
     {
-        $this->updatedAt = $updatedAt;
+        if (!isset($this->updatedAt) || $this->updatedAt->timestamp != $updatedAt->timestamp)
+            $this->updatedAt = $updatedAt;
         return $this;
     }
 

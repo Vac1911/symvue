@@ -193,4 +193,24 @@ class Article
     {
         return $this->comments;
     }
+
+    /**
+     * @param User $author
+     * @return Article
+     */
+    public function setAuthor(User $author): Article
+    {
+        $this->author = $author;
+        return $this;
+    }
+
+//    /**
+//     * @param ArrayCollection $comments
+//     * @return Article
+//     */
+//    public function setComments(ArrayCollection $comments): Article
+//    {
+//        $this->comments = $comments;
+//        return $this;
+//    }
 }

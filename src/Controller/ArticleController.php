@@ -45,9 +45,8 @@ class ArticleController extends AbstractController
         $this->getDoctrine()->getManager()->clear(User::class);
         $this->getDoctrine()->getManager()->clear(Role::class);
         $this->getDoctrine()->getManager()->clear(Comment::class);
-        $user = $this->getDoctrine()->getRepository(User::class)->with('articles.comments.user')->find($id);
-        $serializer_factory = new EntitySerializer();
-        $serializer_factory->toJson($user);
+        $model = $this->getDoctrine()->getRepository(User::class)->with('articles.comments.user')->find($id);
+        dd($model);
     }
 }
 

@@ -2,10 +2,10 @@
 
 namespace App\Service\Serializer;
 
+use App\Service\Serializer\Normalizer\DateTimeNormalizer;
 use App\Service\Serializer\Normalizer\RelationNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 class EntitySerializer
@@ -28,8 +28,8 @@ class EntitySerializer
 
     public function encode($entity)
     {
-        $normalized = json_decode($this->serializer->serialize($entity, 'json', ['json_encode_options' => \JSON_FORCE_OBJECT]), true);
-        return json_encode(self::cleanNormalized($normalized));
+        $normalized = $this->serializer->serialize($entity, 'json', ['json_encode_options' => \JSON_FORCE_OBJECT]);
+        return json_encode(self::cleanNormalized(json_decode($normalized, true)));
     }
 
     public function decode($data, $entityClass)
@@ -39,8 +39,7 @@ class EntitySerializer
 
     public function decodeInto($data, $entity)
     {
-        return $this->serializer->decode($data, 'json');
-//        return $this->serializer->deserialize($data, get_class($entity), 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $entity]);
+        return $this->serializer->deserialize($data, get_class($entity), 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $entity]);
     }
 
     protected static function isAssoc(array $arr)

@@ -128,9 +128,20 @@ class RecursiveSerializer implements SerializerInterface, ContextAwareNormalizer
      */
     public function normalize($data, string $format = null, array $context = [])
     {
-        if (null === $data || is_scalar($data)) {
-            return $data;
-        }
+        $context['serializer'] = $this;
+        foreach($this->normalizers as $normalizer)
+            if (!$normalizer instanceof NormalizerInterface)
+                continue;
+            else
+                $data = $this->runNormalizer($data, $format, $context, $normalizer);
+
+        return $data;
+    }
+
+    protected function runNormalizer($data, string $format, array $context, NormalizerInterface $normalizer)
+    {
+        if ($normalizer->supportsNormalization($data, $format, $context))
+            $data = $normalizer->normalize($data, $format, $context);
 
         if (\is_array($data) || $data instanceof \Traversable) {
             if (($context[AbstractObjectNormalizer::PRESERVE_EMPTY_OBJECTS] ?? false) === true && $data instanceof \Countable && 0 === $data->count()) {
@@ -139,28 +150,13 @@ class RecursiveSerializer implements SerializerInterface, ContextAwareNormalizer
 
             $normalized = [];
             foreach ($data as $key => $val) {
-                $normalized[$key] = $this->normalize($val, $format, $context);
+                $normalized[$key] = $this->runNormalizer($val, $format, $context, $normalizer);
             }
 
-            return $normalized;
+            $data = $normalized;
         }
-
-        if (\is_object($data)) {
-            if ($normalizer = $this->getNormalizer($data, $format, $context)) {
-                return $normalizer->normalize($data, $format, $context);
-            }
-
-            if (!$this->normalizers) {
-                throw new LogicException('You must register at least one normalizer to be able to normalize objects.');
-            }
-
-            throw new NotNormalizableValueException(sprintf('Could not normalize object of type "%s", no supporting normalizer found.', get_debug_type($data)));
-        }
-
-        throw new NotNormalizableValueException('An unexpected value could not be normalized: ' . (!\is_resource($data) ? var_export($data, true) : sprintf('%s resource', get_resource_type($data))));
+        return $data;
     }
-
-    private $r = 0;
 
     /**
      * {@inheritdoc}
@@ -169,45 +165,35 @@ class RecursiveSerializer implements SerializerInterface, ContextAwareNormalizer
      */
     public function denormalize($data, string $type, string $format = null, array $context = [])
     {
-        dump($data);
-        $this->r++;
-        if($this->r > 40)
-            die();
-
-        if (null === $data || is_scalar($data)) {
-            return $data;
+        $context['serializer'] = $this;
+        foreach($this->normalizers as $normalizer) {
+            if (!$normalizer instanceof DenormalizerInterface)
+                continue;
+            else
+                $data = $this->runDenormalizer($data, $type, $format, $context, $normalizer);
         }
+        return $data;
+    }
+
+    protected function runDenormalizer($data, string $type, string $format, array $context, DenormalizerInterface $normalizer)
+    {
+        if ($normalizer->supportsDenormalization($data, $type, $format, $context))
+            $data = $normalizer->denormalize($data, $type, $format, $context);
 
         if (\is_array($data) || $data instanceof \Traversable) {
             if (($context[AbstractObjectNormalizer::PRESERVE_EMPTY_OBJECTS] ?? false) === true && $data instanceof \Countable && 0 === $data->count()) {
                 return $data;
             }
 
-            $normalized = [];
+            $denormalized = [];
             foreach ($data as $key => $val) {
-                $normalized[$key] = $this->denormalize($val, $format, $context);
+                $denormalized[$key] = $this->runDenormalizer($val, $type, $format, $context, $normalizer);
             }
 
-            return $normalized;
+            $data = $denormalized;
         }
 
-        if ($normalizer = $this->getDenormalizer($data, $type, $format, $context)) {
-            return $normalizer->denormalize($data, $type, $format, $context);
-        }
-
-//        if (\is_object($data)) {
-//            if ($normalizer = $this->getDenormalizer($data, $type, $format, $context)) {
-//                return $normalizer->denormalize($data, $type, $format, $context);
-//            }
-//
-//            if (!$this->normalizers) {
-//                throw new LogicException('You must register at least one normalizer to be able to denormalize objects.');
-//            }
-//
-//            throw new NotNormalizableValueException(sprintf('Could not denormalize object of type "%s", no supporting normalizer found.', get_debug_type($data)));
-//        }
-
-        throw new NotNormalizableValueException('An unexpected value could not be denormalized: ' . (!\is_resource($data) ? var_export($data, true) : sprintf('%s resource', get_resource_type($data))));
+        return $data;
     }
 
     /**

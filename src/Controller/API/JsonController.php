@@ -49,7 +49,7 @@ class JsonController extends AbstractController
     {
         $this->getDoctrine()->getManager()->clear($this->entityClass);
         $models = $this->getDoctrine()->getRepository($this->entityClass);
-        if ($this->query['with'])
+        if (isset($this->query['with']))
             $models = $models->with(...$this->query['with']);
         $models = $models->findAll();
 
@@ -71,7 +71,7 @@ class JsonController extends AbstractController
     public function show(string $id): Response
     {
         $model = $this->getDoctrine()->getRepository($this->entityClass);
-        if ($this->query['with'])
+        if (isset($this->query['with']))
             $model = $model->with(...$this->query['with']);
         $model = $model->find($id);
 
@@ -83,7 +83,7 @@ class JsonController extends AbstractController
     }
 
     /**
-     * Get a resource
+     * Update a resource
      *
      * @param string $id
      * @return Response
@@ -96,12 +96,33 @@ class JsonController extends AbstractController
         $data = $this->serializer->decodeInto($this->request->getContent(), $model);
 //        $data = $serializer_factory->decode($this->request->getContent(), $this->entityClass);
 
-        dd($data);
-
 
         return new Response(
             Response::HTTP_OK,
             ['content-type' => 'application/json']
         );
+    }
+
+    /**
+     * Test updating a resource
+     *
+     * @param string $id
+     * @return Response
+     *
+     * @Route("/api/{entity}/{id}/put", methods={"GET"}, name="api.update.test")
+     */
+    public function updateTest(string $id): Response
+    {
+        $body = '{"title":"Autem perferendis ducimus id","coverPhotoUrl":"https:\/\/picsum.photos\/seed\/SxgdDXZy\/900\/450","body":"Autem perferendis ducimus id. Non est autem magni nobis aut odit rem. Odit ut ratione nihil sint consectetur. Dolores hic possimus voluptas voluptatem.\n\nQuisquam ut officia aut itaque. Minima laboriosam atque omnis exercitationem repudiandae aut.\n\nVoluptates voluptas impedit sed temporibus et. Doloribus veritatis voluptatem dolores qui eos et est sunt. Officiis et assumenda exercitationem accusantium tempora rem. Alias magni et voluptatem nihil voluptatem dolor.","id":1,"createdAt":"2020-07-31T12:04:08+00:00","updatedAt":"2020-07-31T12:04:08+00:00","author":{"id":1,"name":"Robyn Kiehn Jr.","email":"pwaelchi@example.net","emailVerifiedAt":"2020-10-19T14:09:22+00:00","password":"$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi","twoFactorSecret":null,"twoFactorRecoveryCodes":null,"rememberToken":"cMwuWhoDP5","profilePhotoPath":null,"createdAt":"2020-10-19T14:09:22+00:00","updatedAt":"2020-10-19T14:09:22+00:00"},"slug":"gabbard-2020","label":"Gabbard 2020"}';
+
+        $model = $this->getDoctrine()->getRepository($this->entityClass)->find($id);
+        $model = $this->serializer->decodeInto($body, $model);
+
+        $uow = $this->getDoctrine()->getManager()->getUnitOfWork();
+        $uow->computeChangeSets();
+
+
+        $this->getDoctrine()->getManager()->flush($model);
+        return $this->render('dump.html.twig', ['vars' => $model]);
     }
 }
